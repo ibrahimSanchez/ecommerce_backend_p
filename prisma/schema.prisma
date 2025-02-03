@@ -47,11 +47,12 @@ model Category {
 }
 
 model User {
-  id       String  @id @default(cuid())
-  email    String  @unique
-  name     String
-  password String
-  active   Boolean @default(false)
+  id               String  @id @default(cuid())
+  email            String  @unique
+  name             String
+  password         String
+  active           Boolean @default(false)
+  activation_token String  @unique
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

@@ -1,3 +1,3 @@
-import { CreateCategoryDto } from "src/categories/dto/create-category.dto";
+import { CreateAuthDto } from "./create-auth.dto";
 
-export type UpdateAuthDto = Partial<CreateCategoryDto>;
+export type UpdateAuthDto = Partial<CreateAuthDto>;
