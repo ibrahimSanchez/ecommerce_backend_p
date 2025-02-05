@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -15,6 +16,9 @@ import { JwtService } from "@nestjs/jwt";
 import { JwtPayload } from "./jet-payload.interface";
 import { v4 } from "uuid";
 import { ActivateUserDto } from "./dto/activate-user.dto";
+import { RequestResetPasswordDto } from "./dto/request-reset-password.dto";
+import { ResetPasswordDto } from "./dto/reset-password.dto";
+import { ChangePasswordDto } from "./dto/change-password.dto";
 @Injectable()
 export class AuthService {
   constructor(
@@ -23,15 +27,25 @@ export class AuthService {
   ) {}
 
   // Todo:*************************************************************************
+  async hashedPassword(password: string) {
+    const salt = await bcrypt.genSalt();
+    return await bcrypt.hash(password, salt);
+  }
+
+  // Todo:*************************************************************************
   async registerUser(createAuthDto: CreateAuthDto) {
     const { name, email, password } = createAuthDto;
 
-    const salt = await bcrypt.genSalt();
-    const hashedPassword = await bcrypt.hash(password, salt);
+    const newHashedPassword = await this.hashedPassword(password);
 
     try {
       return await this.prismaService.user.create({
-        data: { name, email, password: hashedPassword, activation_token: v4() },
+        data: {
+          name,
+          email,
+          password: newHashedPassword,
+          activation_token: v4(),
+        },
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -45,13 +59,34 @@ export class AuthService {
   }
 
   // Todo:*************************************************************************
-  async login(loginDto: LoginDto) {
-    const { email, password } = loginDto;
-    const userFound = await this.prismaService.user.findUnique({
+  async findOneByEmail(email: string) {
+    const user = await this.prismaService.user.findUnique({
       where: { email },
     });
 
-    if (userFound && (await bcrypt.compare(password, userFound.password))) {
+    if (!user)
+      throw new NotFoundException(
+        `No se encuentra el usuario con email: ${email}`,
+      );
+    return user;
+  }
+
+  // Todo:*************************************************************************
+  async findOneByResetPasswordToken(resetPasswordToken: string) {
+    const user = await this.prismaService.user.findUnique({
+      where: { reset_password_token: resetPasswordToken },
+    });
+
+    if (!user) throw new NotFoundException();
+    return user;
+  }
+
+  // Todo:*************************************************************************
+  async login(loginDto: LoginDto) {
+    const { email, password } = loginDto;
+    const userFound = await this.findOneByEmail(email);
+
+    if (await bcrypt.compare(password, userFound.password)) {
       const payload: JwtPayload = {
         id: userFound.id,
         email,
@@ -64,11 +99,6 @@ export class AuthService {
     }
 
     throw new UnauthorizedException(`Compruebe los credenciales`);
-  }
-
-  // Todo:*************************************************************************
-  async findOneByEmail(email: string) {
-    return await this.prismaService.user.findUnique({ where: { email } });
   }
 
   // Todo:*************************************************************************
@@ -88,4 +118,53 @@ export class AuthService {
     });
   }
 
+  // Todo:*************************************************************************
+  async requestResetPassword(requestResetPasswordDto: RequestResetPasswordDto) {
+    const { email } = requestResetPasswordDto;
+
+    const user = await this.findOneByEmail(email);
+    const { id } = user;
+
+    await this.prismaService.user.update({
+      where: { id },
+      data: { reset_password_token: v4() },
+    });
+
+    // añadir la logica de mandar el email al usuario para que pueda cambiar la contraseña
+    return "Implementar esa logica";
+  }
+
+  // Todo:*************************************************************************
+  async resetPassword(resetPasswordDto: ResetPasswordDto) {
+    const { password, resetPpasswordToken } = resetPasswordDto;
+
+    const user = await this.findOneByResetPasswordToken(resetPpasswordToken);
+    const { id } = user;
+
+    const newHashedPassword = await this.hashedPassword(password);
+
+    await this.prismaService.user.update({
+      where: { id },
+      data: { password: newHashedPassword, reset_password_token: null },
+    });
+
+    // añadir la logica de mandar el email al usuario para que pueda cambiar la contraseña
+    return "Implementar esa logica";
+  }
+
+  // Todo:*************************************************************************
+  async changePassword(changePasswordDto: ChangePasswordDto, user: User) {
+    const { newPassword, oldPassword } = changePasswordDto;
+    const { id } = user;
+
+    if (await await bcrypt.compare(oldPassword, user.password)) {
+      const newHashedPassword = await this.hashedPassword(newPassword);
+      await this.prismaService.user.update({
+        where: { id },
+        data: { password: newHashedPassword, reset_password_token: null },
+      });
+    } else {
+      throw new BadRequestException("La contraseña actual no coincide");
+    }
+  }
 }
