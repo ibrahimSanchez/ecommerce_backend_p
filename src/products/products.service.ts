@@ -32,7 +32,7 @@ export class ProductsService {
       const product = await this.prismaService.product.create({
         data: {
           ...productData,
-          categoryId, // Asigna la categoría correctamente
+          categoryId,
           imgs: {
             create: images.map((img) => ({
               thumbnails: img.thumbnails,

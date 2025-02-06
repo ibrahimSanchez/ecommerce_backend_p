@@ -7,13 +7,12 @@ import {
   UnprocessableEntityException,
 } from "@nestjs/common";
 import { CreateAuthDto } from "./dto/create-auth.dto";
-import { UpdateAuthDto } from "./dto/update-auth.dto";
 import { PrismaService } from "src/prisma/prisma.service";
 import { Prisma, User } from "@prisma/client";
 import * as bcrypt from "bcrypt";
 import { LoginDto } from "./dto/login.dto";
 import { JwtService } from "@nestjs/jwt";
-import { JwtPayload } from "./jet-payload.interface";
+import { JwtPayload } from "./jwt-payload.interface";
 import { v4 } from "uuid";
 import { ActivateUserDto } from "./dto/activate-user.dto";
 import { RequestResetPasswordDto } from "./dto/request-reset-password.dto";

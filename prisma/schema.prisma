@@ -13,20 +13,43 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Order {
+  id           String      @id @default(cuid()) // ID único del pedido
+  userId       String // ID del usuario que realiza el pedido
+  user         User        @relation(fields: [userId], references: [id])
+  items        OrderItem[] // Relación con los productos del pedido
+  total_amount Decimal // Monto total del pedido
+  status       String      @default("pending") // Estado del pedido
+  createdAt    DateTime    @default(now()) // Fecha de creación
+  updatedAt    DateTime    @updatedAt
+}
+
+model OrderItem {
+  id        String  @id @default(cuid()) // ID único del detalle del pedido
+  orderId   String // Relación con el pedido
+  order     Order   @relation(fields: [orderId], references: [id])
+  productId String // Relación con el producto
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int // Cantidad del producto en el pedido
+  price     Decimal // Precio unitario en el momento de la compra
+}
+
 model Product {
   id              String  @id @default(cuid())
   title           String  @unique
   reviews         Int
   price           Decimal @db.Decimal(10, 2)
   discountedPrice Decimal @db.Decimal(10, 2)
+  quantity        Int
 
   categoryId String
   category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
   imgs ProductImage[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  OrderItem OrderItem[]
 }
 
 model ProductImage {
@@ -57,4 +80,5 @@ model User {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  Order     Order[]
 }
