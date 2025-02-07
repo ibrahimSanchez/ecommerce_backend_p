@@ -1,6 +1,10 @@
-import { Injectable } from "@nestjs/common";
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from "@nestjs/common";
 import { CreateOrderDto } from "./dto/create-order.dto";
-// import { UpdateOrderDto } from "./dto/update-order.dto";
+import { UpdateOrderDto } from "./dto/update-order.dto";
 import { User } from "@prisma/client";
 import { PrismaService } from "src/prisma/prisma.service";
 import { Decimal } from "@prisma/client/runtime/library";
@@ -10,7 +14,7 @@ export class OrdersService {
   constructor(private prismaService: PrismaService) {}
 
   async create(createOrderDto: CreateOrderDto, user: User) {
-    const { arrayItems, total_amount } = createOrderDto;
+    const { arrayItems, total_amount, delivery_address } = createOrderDto;
 
     const arrItems = Array.isArray(arrayItems)
       ? arrayItems
@@ -29,6 +33,7 @@ export class OrdersService {
     try {
       const order = await this.prismaService.order.create({
         data: {
+          delivery_address,
           userId: user.id,
           total_amount: new Decimal(total_amount),
           items: {
@@ -58,15 +63,36 @@ export class OrdersService {
     });
   }
 
-  //   findOne(id: number) {
-  //     return `This action returns a #${id} order`;
-  //   }
+  async updateStatus(id: string, updateOrderDto: UpdateOrderDto, user: User) {
+    const { id: userId } = user;
 
-  //   update(id: number, updateOrderDto: UpdateOrderDto) {
-  //     return `This action updates a #${id} order`;
-  //   }
+    const { status } = updateOrderDto;
+
+    if (status !== "pending" && status !== "delivered" && status !== "canceled")
+      throw new InternalServerErrorException(
+        `La información introducida no es válida`,
+      );
+    try {
+      const orderFound = await this.prismaService.order.update({
+        where: { id, userId },
+        data: updateOrderDto,
+      });
+      if (!orderFound)
+        throw new NotFoundException(`La orden con id: ${id} no fue encontrada`);
+
+      return orderFound;
+    } catch (error) {
+      throw new InternalServerErrorException(
+        `Error al actualizar la orden. Contacte al administrador.`,
+      );
+    }
+  }
 
   //   remove(id: number) {
   //     return `This action removes a #${id} order`;
   //   }
 }
+
+//   findOne(id: number) {
+//     return `This action returns a #${id} order`;
+//   }

@@ -14,14 +14,15 @@ datasource db {
 }
 
 model Order {
-  id           String      @id @default(cuid()) // ID único del pedido
-  userId       String // ID del usuario que realiza el pedido
-  user         User        @relation(fields: [userId], references: [id])
-  items        OrderItem[] // Relación con los productos del pedido
-  total_amount Decimal // Monto total del pedido
-  status       String      @default("pending") // Estado del pedido
-  createdAt    DateTime    @default(now()) // Fecha de creación
-  updatedAt    DateTime    @updatedAt
+  id               String      @id @default(cuid()) // ID único del pedido
+  delivery_address String
+  userId           String // ID del usuario que realiza el pedido
+  user             User        @relation(fields: [userId], references: [id])
+  items            OrderItem[] // Relación con los productos del pedido
+  total_amount     Decimal // Monto total del pedido
+  status           String      @default("pending") // Estado del pedido
+  createdAt        DateTime    @default(now()) // Fecha de creación
+  updatedAt        DateTime    @updatedAt
 }
 
 model OrderItem {

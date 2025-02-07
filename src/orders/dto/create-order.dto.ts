@@ -12,6 +12,7 @@ export type OrderDto = Omit<
 
 export type CreateOrderDto = Omit<Order, "id" | "createdAt" | "updatedAt"> & {
   total_amount: number;
+  delivery_address: string;
   userId: string;
   arrayItems: OrderItem[];
 };
