@@ -25,10 +25,16 @@ export class OrdersController {
     return this.ordersService.create(createOrderDto, user);
   }
 
-  @Get()
+  @Get("/admin")
   @UseGuards(AuthGuard("jwt"))
-  findAll(@GetUser() user: User) {
-    return this.ordersService.findAll(user);
+  findAllOrders(@GetUser() user: User) {
+    return this.ordersService.findAllOrders(user);
+  }
+
+  @Get("/me")
+  @UseGuards(AuthGuard("jwt"))
+  findAllOrdersByUserId(@GetUser() user: User) {
+    return this.ordersService.findAllOrdersByUserId(user);
   }
 
   // @Get(":id")

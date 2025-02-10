@@ -31,17 +31,18 @@ model OrderItem {
   order     Order   @relation(fields: [orderId], references: [id])
   productId String // Relación con el producto
   product   Product @relation(fields: [productId], references: [id])
-  quantity  Int // Cantidad del producto en el pedido
+  quantity  Decimal @db.Decimal(10, 2) // Cantidad del producto en el pedido
   price     Decimal // Precio unitario en el momento de la compra
 }
 
 model Product {
   id              String  @id @default(cuid())
   title           String  @unique
-  reviews         Int
+  reviews         Decimal @db.Decimal(10, 2)
   price           Decimal @db.Decimal(10, 2)
   discountedPrice Decimal @db.Decimal(10, 2)
-  quantity        Int
+  quantity        Decimal @db.Decimal(10, 2)
+  description     String @default("")
 
   categoryId String
   category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
@@ -74,6 +75,8 @@ model User {
   id                   String  @id @default(cuid())
   email                String  @unique
   name                 String
+  phone                String
+  address              String
   password             String
   active               Boolean @default(false)
   activation_token     String  @unique @db.Uuid
@@ -82,4 +85,17 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   Order     Order[]
+
+  role         String @default("user_role")
+  relationRole Role   @relation(fields: [role], references: [role])
+}
+
+model Role {
+  id   String @id @default(cuid())
+  role String @unique @default("user_role")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User[]
 }

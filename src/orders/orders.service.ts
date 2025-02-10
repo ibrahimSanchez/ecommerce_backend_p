@@ -2,6 +2,7 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
+  UnauthorizedException,
 } from "@nestjs/common";
 import { CreateOrderDto } from "./dto/create-order.dto";
 import { UpdateOrderDto } from "./dto/update-order.dto";
@@ -54,13 +55,19 @@ export class OrdersService {
     }
   }
 
-  async findAll(user: User) {
+  async findAllOrdersByUserId(user: User) {
     const { id } = user;
     return await this.prismaService.order.findMany({
       where: {
         userId: id,
       },
     });
+  }
+
+  async findAllOrders(user: User) {
+    const { role } = user;
+    if (role === "admin_role") return await this.prismaService.order.findMany();
+    else throw new UnauthorizedException();
   }
 
   async updateStatus(id: string, updateOrderDto: UpdateOrderDto, user: User) {

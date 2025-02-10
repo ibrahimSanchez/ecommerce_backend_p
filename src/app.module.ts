@@ -6,6 +6,7 @@ import { AuthModule } from "./auth/auth.module";
 import { ConfigModule } from "@nestjs/config";
 import { OrdersModule } from './orders/orders.module';
 import { UsersModule } from './users/users.module';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { UsersModule } from './users/users.module';
     AuthModule,
     OrdersModule,
     UsersModule,
+    CloudinaryModule,
   ],
   controllers: [],
   providers: [PrismaService],

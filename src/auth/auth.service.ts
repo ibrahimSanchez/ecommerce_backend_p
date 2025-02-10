@@ -33,7 +33,7 @@ export class AuthService {
 
   // Todo:*************************************************************************
   async registerUser(createAuthDto: CreateAuthDto) {
-    const { name, email, password } = createAuthDto;
+    const { name, email, password, address, phone } = createAuthDto;
 
     const newHashedPassword = await this.hashedPassword(password);
 
@@ -41,6 +41,8 @@ export class AuthService {
       return await this.prismaService.user.create({
         data: {
           name,
+          address,
+          phone,
           email,
           password: newHashedPassword,
           activation_token: v4(),
@@ -90,6 +92,7 @@ export class AuthService {
         id: userFound.id,
         email,
         active: userFound.active,
+        role: userFound.role,
       };
 
       const accessToken = await this.jwtService.sign(payload);
@@ -100,7 +103,7 @@ export class AuthService {
     throw new UnauthorizedException(`Compruebe los credenciales`);
   }
 
-  // Todo:*************************************************************************
+  // TodoÑ*************************************************************************
   async activateUser(activateUserDto: ActivateUserDto) {
     const { id, code } = activateUserDto;
 
@@ -156,7 +159,7 @@ export class AuthService {
     const { newPassword, oldPassword } = changePasswordDto;
     const { id } = user;
 
-    if (await await bcrypt.compare(oldPassword, user.password)) {
+    if (await bcrypt.compare(oldPassword, user.password)) {
       const newHashedPassword = await this.hashedPassword(newPassword);
       await this.prismaService.user.update({
         where: { id },

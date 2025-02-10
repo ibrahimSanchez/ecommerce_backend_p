@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  UnauthorizedException,
 } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import { CreateProductDto } from "./dto/create-product.dto";
@@ -62,6 +63,7 @@ export class ProductsService {
   async findAll() {
     const products = await this.prismaService.product.findMany({
       include: { imgs: true },
+      orderBy: { title: "asc" },
     });
 
     return products.map(this.formatProductResponse);
@@ -82,9 +84,10 @@ export class ProductsService {
     return this.formatProductResponse(productFound);
   }
 
-  async update(id: string, updateProductDto: UpdateProductDto) {
+  async updateProduct(id: string, updateProductDto: UpdateProductDto) {
     const { imgs, ...productData } = updateProductDto;
 
+    // Verificar si el producto existe
     const existingProduct = await this.prismaService.product.findUnique({
       where: { id },
     });
@@ -95,16 +98,15 @@ export class ProductsService {
       );
     }
 
+    const images = Array.isArray(imgs) ? imgs : imgs ? [imgs] : [];
+
     const updatedProduct = await this.prismaService.product.update({
       where: { id },
       data: {
         ...productData,
         imgs: {
           deleteMany: {}, // Elimina imágenes antiguas
-          create: imgs?.map((img) => ({
-            thumbnails: img.thumbnails,
-            previews: img.previews,
-          })),
+          create: images, // Agrega las nuevas imágenes
         },
       },
       include: { imgs: true },

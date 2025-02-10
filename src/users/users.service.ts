@@ -58,4 +58,17 @@ export class UsersService {
       );
     }
   }
+
+  // Todo:*************************************************************************
+  async findUserById(id: string) {
+    const user = await this.prismaService.user.findUnique({
+      where: { id },
+    });
+
+    if (!user)
+      throw new NotFoundException(
+        `No se encuentra el usuario con email: ${id}`,
+      );
+    return user;
+  }
 }
