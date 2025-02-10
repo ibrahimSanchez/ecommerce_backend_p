@@ -17,7 +17,6 @@ export class ProductsService {
     try {
       const { imgs, categoryId, ...productData } = createProductDto;
 
-      // Verificar si la categoría existe antes de asignarla
       const categoryExists = await this.prismaService.category.findUnique({
         where: { id: categoryId },
       });
@@ -87,9 +86,9 @@ export class ProductsService {
   async updateProduct(id: string, updateProductDto: UpdateProductDto) {
     const { imgs, ...productData } = updateProductDto;
 
-    // Verificar si el producto existe
     const existingProduct = await this.prismaService.product.findUnique({
       where: { id },
+      include: { imgs: true },
     });
 
     if (!existingProduct) {
@@ -98,16 +97,20 @@ export class ProductsService {
       );
     }
 
-    const images = Array.isArray(imgs) ? imgs : imgs ? [imgs] : [];
+    let imageUpdateData = {};
+    if (imgs !== undefined) {
+      const images = Array.isArray(imgs) ? imgs : imgs ? [imgs] : [];
+      imageUpdateData = {
+        deleteMany: {},
+        create: images,
+      };
+    }
 
     const updatedProduct = await this.prismaService.product.update({
       where: { id },
       data: {
         ...productData,
-        imgs: {
-          deleteMany: {}, // Elimina imágenes antiguas
-          create: images, // Agrega las nuevas imágenes
-        },
+        ...(imgs !== undefined && { imgs: imageUpdateData }),
       },
       include: { imgs: true },
     });
@@ -131,7 +134,6 @@ export class ProductsService {
     });
   }
 
-  // Método para formatear la estructura de imgs como un único objeto
   private formatProductResponse(product: any) {
     return {
       ...product,
