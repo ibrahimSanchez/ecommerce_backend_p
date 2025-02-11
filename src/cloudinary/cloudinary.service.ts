@@ -26,6 +26,6 @@ export class CloudinaryService {
 
 
   gethello(){
-    return 'hello'
+    return 'hello!!!!'
   }
 }

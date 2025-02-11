@@ -2,7 +2,6 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
-  UnauthorizedException,
 } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import { CreateProductDto } from "./dto/create-product.dto";
@@ -13,10 +12,9 @@ import { PrismaService } from "src/prisma/prisma.service";
 export class ProductsService {
   constructor(private prismaService: PrismaService) {}
 
-  async create(createProductDto: CreateProductDto) {
+  async createProduct(createProductDto: CreateProductDto) {
     try {
       const { imgs, categoryId, ...productData } = createProductDto;
-
       const categoryExists = await this.prismaService.category.findUnique({
         where: { id: categoryId },
       });

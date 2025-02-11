@@ -9,6 +9,7 @@ export type CreateProductDto = Omit<
   Product,
   "id" | "createdAt" | "updatedAt"
 > & {
+  title: string;
   categoryId: string;
   reviews: number;
   imgs?: ProductImageDto[];
