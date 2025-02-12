@@ -28,7 +28,7 @@ model Order {
 model OrderItem {
   id        String  @id @default(cuid()) // ID único del detalle del pedido
   orderId   String // Relación con el pedido
-  order     Order   @relation(fields: [orderId], references: [id])
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   productId String // Relación con el producto
   product   Product @relation(fields: [productId], references: [id])
   quantity  Decimal @db.Decimal(10, 2) // Cantidad del producto en el pedido
@@ -42,7 +42,7 @@ model Product {
   price           Decimal @db.Decimal(10, 2)
   discountedPrice Decimal @db.Decimal(10, 2)
   quantity        Decimal @db.Decimal(10, 2)
-  description     String @default("")
+  description     String  @default("")
 
   categoryId String
   category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)

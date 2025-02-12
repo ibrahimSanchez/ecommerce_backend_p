@@ -64,15 +64,21 @@ export class OrdersService {
     });
   }
 
-  async findAllOrders(user: User) {
-    const { role } = user;
-    if (role === "admin_role") return await this.prismaService.order.findMany();
-    else throw new UnauthorizedException();
+  async findAllOrders() {
+    try {
+      return await this.prismaService.order.findMany();
+    } catch (error) {
+      throw new InternalServerErrorException(
+        `Error al actualizar la orden. Contacte al administrador.`,
+        error,
+      );
+    }
   }
 
   async updateStatus(id: string, updateOrderDto: UpdateOrderDto, user: User) {
-    const { id: userId } = user;
+    const { id: userId, role } = user;
 
+    const q = role === "admin_role" ? { id } : { id, userId };
     const { status } = updateOrderDto;
 
     if (status !== "pending" && status !== "delivered" && status !== "canceled")
@@ -81,7 +87,7 @@ export class OrdersService {
       );
     try {
       const orderFound = await this.prismaService.order.update({
-        where: { id, userId },
+        where: q,
         data: updateOrderDto,
       });
       if (!orderFound)
@@ -95,9 +101,30 @@ export class OrdersService {
     }
   }
 
-  //   remove(id: number) {
-  //     return `This action removes a #${id} order`;
-  //   }
+  async remove(id: string, user: User) {
+    const { id: userId, role } = user;
+    const q = role === "admin_role" ? { id } : { id, userId };
+
+    try {
+      const orderFound = await this.prismaService.order.findUnique({
+        where: q,
+      });
+
+      if (!orderFound) {
+        throw new NotFoundException(`The order with ID: ${id} was not found.`);
+      }
+
+      return await this.prismaService.order.delete({
+        where: q,
+      });
+    } catch (error) {
+      // console.log('❌❌❌❌❌❌❌❌❌❌❌❌❌❌', error)
+      throw new InternalServerErrorException(
+        "Internal server error 000",
+        error,
+      );
+    }
+  }
 }
 
 //   findOne(id: number) {

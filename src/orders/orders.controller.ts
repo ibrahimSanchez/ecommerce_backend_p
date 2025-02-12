@@ -11,28 +11,31 @@ import {
 import { OrdersService } from "./orders.service";
 import { CreateOrderDto } from "./dto/create-order.dto";
 import { UpdateOrderDto } from "./dto/update-order.dto";
-import { AuthGuard } from "@nestjs/passport";
 import { User } from "@prisma/client";
 import { GetUser } from "src/auth/get-user-decorator";
+import { AuthGuard } from "src/auth/guard/auth.guard";
+import { Roles } from "src/auth/decorators/roles.decorator";
+import { RolesGuard } from "src/auth/guard/roles.guard";
 
 @Controller("orders")
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
   @Post()
-  @UseGuards(AuthGuard("jwt"))
+  @UseGuards(AuthGuard)
   create(@Body() createOrderDto: CreateOrderDto, @GetUser() user: User) {
     return this.ordersService.create(createOrderDto, user);
   }
 
   @Get("/admin")
-  @UseGuards(AuthGuard("jwt"))
-  findAllOrders(@GetUser() user: User) {
-    return this.ordersService.findAllOrders(user);
+  @Roles("admin_role")
+  @UseGuards(AuthGuard, RolesGuard)
+  findAllOrders() {
+    return this.ordersService.findAllOrders();
   }
 
   @Get("/me")
-  @UseGuards(AuthGuard("jwt"))
+  @UseGuards(AuthGuard)
   findAllOrdersByUserId(@GetUser() user: User) {
     return this.ordersService.findAllOrdersByUserId(user);
   }
@@ -43,7 +46,7 @@ export class OrdersController {
   // }
 
   @Patch("/change-status/:id")
-  @UseGuards(AuthGuard("jwt"))
+  @UseGuards(AuthGuard)
   update(
     @Param("id") id: string,
     @Body() updateOrderDto: UpdateOrderDto,
@@ -52,8 +55,9 @@ export class OrdersController {
     return this.ordersService.updateStatus(id, updateOrderDto, user);
   }
 
-  // @Delete(":id")
-  // remove(@Param("id") id: string) {
-  //   return this.ordersService.remove(+id);
-  // }
+  @Delete(":id")
+  @UseGuards(AuthGuard)
+  remove(@Param("id") id: string, @GetUser() user: User) {
+    return this.ordersService.remove(id, user);
+  }
 }
