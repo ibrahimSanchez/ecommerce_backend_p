@@ -21,7 +21,7 @@ export class ProductsService {
 
       if (!categoryExists) {
         throw new NotFoundException(
-          `La categoría con ID ${categoryId} no existe.`,
+         `Category with ID ${categoryId} does not exist.`,
         );
       }
 
@@ -48,7 +48,7 @@ export class ProductsService {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === "P2002") {
           throw new ConflictException(
-            `El producto con el nombre ${createProductDto.title} ya existe`,
+            `The product with the name ${createProductDto.title} already exists`,
           );
         }
       }
@@ -74,7 +74,7 @@ export class ProductsService {
 
     if (!productFound) {
       throw new NotFoundException(
-        `El producto con id: ${id} no fue encontrado`,
+        `Product with id: ${id} was not found`,
       );
     }
 
@@ -91,7 +91,7 @@ export class ProductsService {
 
     if (!existingProduct) {
       throw new NotFoundException(
-        `El producto con id: ${id} no fue encontrado`,
+        `Product with id: ${id} was not found`,
       );
     }
 
@@ -123,7 +123,7 @@ export class ProductsService {
 
     if (!productFound) {
       throw new NotFoundException(
-        `El producto con id: ${id} no fue encontrado`,
+        `Product with id: ${id} was not found`,
       );
     }
 

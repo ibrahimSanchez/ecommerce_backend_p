@@ -17,7 +17,7 @@ model Order {
   id               String      @id @default(cuid()) // ID único del pedido
   delivery_address String
   userId           String // ID del usuario que realiza el pedido
-  user             User        @relation(fields: [userId], references: [id])
+  user             User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   items            OrderItem[] // Relación con los productos del pedido
   total_amount     Decimal // Monto total del pedido
   status           String      @default("pending") // Estado del pedido

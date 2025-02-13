@@ -2,6 +2,7 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from "@nestjs/common";
 import { UpdateUserDto } from "./dto/update-user.dto";
@@ -70,5 +71,78 @@ export class UsersService {
         `No se encuentra el usuario con email: ${id}`,
       );
     return user;
+  }
+
+  // Todo:*************************************************************************
+  async getAllUsers() {
+    try {
+      const allUsers = this.prismaService.user.findMany({
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          address: true,
+          phone: true,
+          role: true,
+        },
+      });
+      return allUsers;
+    } catch (error) {
+      throw new NotFoundException();
+    }
+  }
+
+  // Todo:*************************************************************************
+  async updateUser(id: string, updateUserDto: UpdateUserDto) {
+    try {
+      const foundUser = await this.prismaService.user.update({
+        where: { id },
+        data: updateUserDto,
+      });
+
+      if (!foundUser)
+        throw new NotFoundException(`User with id: ${id} was not found`);
+
+      return foundUser;
+    } catch (error) {
+      throw new HttpException(
+        {
+          status: HttpStatus.FORBIDDEN,
+          error: "Ocurrió un error",
+        },
+        HttpStatus.FORBIDDEN,
+      );
+    }
+  }
+
+  // Todo:*************************************************************************
+  async deleteUser(id: string) {
+    try {
+      const userFound = await this.prismaService.user.findUnique({
+        where: { id },
+      });
+      if (!userFound) {
+        throw new NotFoundException(`User with id: ${id} was not found`);
+      }
+
+      return await this.prismaService.user.delete({
+        where: { id },
+      });
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException();
+    }
+  }
+
+  // Todo:*************************************************************************
+  async getAllRoles() {
+    try {
+      const allRoles = await this.prismaService.role.findMany();
+      return allRoles;
+    } catch (error) {
+      throw new InternalServerErrorException();
+    }
   }
 }
